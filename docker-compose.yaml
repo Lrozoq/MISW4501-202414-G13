@@ -1,0 +1,17 @@
+services:
+  incidents:
+    image: gcr.io/cloudsql-docker/gce-proxy:1.12
+    platform: linux/amd64
+    container_name: incidents_db
+    command: /cloud_sql_proxy -instances=${INSTANCE_INCIDENTS_PROD} -credential_file=/config
+    ports:
+      - '0.0.0.0:${PORT_INCIDENTS_PROD}:3306'
+    volumes:
+      - ./${JSON_KEY_FILE}:/config
+    networks: [backend, incidents]
+
+networks:
+  backend:
+    name: backend
+  incidents:
+    name: incidents
