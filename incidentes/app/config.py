@@ -14,3 +14,6 @@ DB_HOST_REPLICA = os.getenv("DB_HOST_REPLICA","localhost")
 DB_NAME_REPLICA = os.getenv("DB_NAME_REPLICA","prueba")
 DB_PORT_REPLICA = os.getenv("DB_PORT_REPLICA","5432")
 
+PROJECT_ID = os.getenv("GCP_PROJECT_ID", "abcall-435301")
+TOPIC_ID = os.getenv("GCP_TOPIC_ID", "incidents-db-sync")
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "../service-account.json"
