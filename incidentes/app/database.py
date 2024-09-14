@@ -1,3 +1,6 @@
+import json
+from typing import List
+from redis import Redis
 from sqlmodel import Session, create_engine, SQLModel
 from app import config
 from app.models import Incidente
@@ -5,7 +8,6 @@ from google.cloud import pubsub_v1
 
 # URL para la base de datos primaria
 SQLALCHEMY_DATABASE_URL_PRIMARY = f"mysql+mysqlconnector://{config.DB_USER}:{config.DB_PASSWORD}@{config.DB_HOST}:{config.DB_PORT}/{config.DB_NAME}"
-print(SQLALCHEMY_DATABASE_URL_PRIMARY)
 
 # URL para la base de datos réplica
 SQLALCHEMY_DATABASE_URL_REPLICA = f"mysql+mysqlconnector://{config.DB_USER}:{config.DB_PASSWORD}@{config.DB_HOST_REPLICA}:{config.DB_PORT_REPLICA}/{config.DB_NAME_REPLICA}"
@@ -20,6 +22,10 @@ topic_path = publisher.topic_path(config.PROJECT_ID, config.TOPIC_ID)
 
 # Crear las tablas en la base de datos primaria
 SQLModel.metadata.create_all(engine_primary)
+
+
+# Instancia redis
+redis_client = Redis(host=config.REDIS_HOST, port=config.REDIS_PORT)
 
 def create_session(primary: bool = True):
     """Crea una sesión, usa la primaria si primary=True, de lo contrario usa la réplica."""
@@ -38,6 +44,41 @@ def create_incidente(incidente: Incidente):
     session.close()
     return incidente
 
+def create_incidente_cache(incidente: Incidente):
+    """Crea un incidente en la base de datos primaria."""
+    session = create_session(primary=True)  # Siempre en la primaria
+    
+    try:
+        
+        session.add(incidente)
+        session.commit()
+        session.refresh(incidente)
+        
+        # Guardar el incidente en el cache Redis
+        incidente_id = incidente.id
+        incidente_json = json.dumps({
+            "id": incidente.id,
+            "user_id": incidente.user_id,
+            "descripcion": incidente.description,
+        })
+        
+        
+        # Guardar en Redis con una clave basada en el ID del incidente
+        redis_client.set(f"incidentes:{incidente_id}", incidente_json)
+
+        print(f"Incidente {incidente_id} guardado en Redis.")
+        
+
+    except Exception as e:
+        session.rollback()
+        print(f"Error al crear incidente: {e}")
+        raise
+    finally:
+        session.close()
+
+    return incidente
+
+
 def obtener_incidentes():
     """Obtiene todos los incidentes desde la base de datos réplica."""
     session = create_session(primary=False)  # Para Consultas desde la réplica cambiarle el valor a false
@@ -52,3 +93,33 @@ def obtener_incidentes_user(user_id: int):
     incidentes = session.query(Incidente).filter(Incidente.user_id == user_id).all()
     session.close()
     return incidentes
+
+
+def obtener_incidentes_cache() -> List[Incidente]:
+    """Obtiene todos los incidentes desde Redis o la base de datos réplica."""
+    
+    # Intentar obtener los incidentes del caché
+    keys = redis_client.keys("incidente:*")
+    
+    if keys:
+        print("Incidentes obtenidos desde el caché.")
+        incidentes = []
+        for key in keys:
+            incidente_json = redis_client.get(key)
+            if incidente_json:
+                incidentes.append(Incidente(**json.loads(incidente_json)))
+        return incidentes
+
+    # Si no están en el caché, consultar la base de datos
+    print("Incidentes no encontrados en caché, consultando la base de datos...")
+    session = create_session(primary=True)
+    incidentes = session.query(Incidente).all()
+    session.close()
+
+    # Guardar cada incidente individualmente en el caché
+    for incidente in incidentes:
+        incidente_json = json.dumps(incidente.dict())
+        redis_client.set(f"incidente:{incidente.id}", incidente_json)
+
+    return incidentes
+    
