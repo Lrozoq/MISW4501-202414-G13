@@ -18,7 +18,6 @@ FROM gcr.io/distroless/python3-debian12 as production
 COPY --from=build-venv /venv /venv
 
 COPY . /app
-COPY . .
 WORKDIR /app
 
 EXPOSE 8080

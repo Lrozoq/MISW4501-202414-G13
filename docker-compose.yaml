@@ -32,6 +32,7 @@ services:
     build:
       context: ./incidentes
       dockerfile: Dockerfile
+      target: production
     container_name: incidents_backend
     networks: [backend]
     ports:
