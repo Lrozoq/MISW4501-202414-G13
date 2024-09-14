@@ -7,7 +7,6 @@ RUN apt-get update && \
 FROM build AS build-venv
 
 COPY requirements.txt /requirements.txt
-COPY lib lib
 
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
