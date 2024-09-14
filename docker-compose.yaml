@@ -8,8 +8,9 @@ services:
       - '0.0.0.0:${PORT_INCIDENTS}:3306'
     volumes:
       - ./${JSON_KEY_FILE}:/config
-    networks: [backend]
-
+    networks:
+      - backend
+ 
   incidents-replica:
     image: gcr.io/cloudsql-docker/gce-proxy:1.12
     platform: linux/amd64
@@ -19,22 +20,24 @@ services:
       - '0.0.0.0:${PORT_INCIDENTS_REPLICA}:3306'
     volumes:
       - ./${JSON_KEY_FILE}:/config
-    networks: [backend]
-  
+    networks:
+      - backend
+ 
   redis:
     image: redis:alpine
     container_name: ${DOCKER_REDIS_SERVICE_NAME}
-    networks: [backend]
+    networks:
+      - backend
     ports:
       - '${DOCKER_REDIS_PORT}:6379'
-
+ 
   backend:
     build:
       context: ./incidentes
       dockerfile: Dockerfile
-      target: production
     container_name: incidents_backend
-    networks: [backend]
+    networks:
+      - backend
     ports:
       - '${DOCKER_BACKEND_PORT}:8080'
     env_file:
@@ -42,11 +45,8 @@ services:
     volumes:
       - ./incidentes:/app/incidentes
       - ./.env:/app/.env
-
+ 
 networks:
   backend:
-    name: backend
-  incidents-primary:
-    name: incidents-primary
-  incidents-replica:
-    name: incidents-replica
+    external: true
+    name: prueba

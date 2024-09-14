@@ -16,7 +16,7 @@ DB_PORT_REPLICA = os.getenv("DB_PORT_REPLICA","5432")
 
 PROJECT_ID = os.getenv("GCP_PROJECT_ID", "abcall-435301")
 TOPIC_ID = os.getenv("GCP_TOPIC_ID", "incidents-db-sync")
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "service-account.json"
+# os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "service-account.json"
 
 REDIS_HOST = os.getenv("REDIS_HOST","localhost")
 REDIS_PORT = os.getenv('DOCKER_REDIS_PORT', 6379)
