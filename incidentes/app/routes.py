@@ -24,7 +24,7 @@ async def obtener_todos():
     return incidentes
 
 @router.get("/incidentes/{user_id}")
-async def obtener_entrenos(user_id):
+async def obtener_incidentes(user_id):
     incidentes = obtener_incidentes_user(user_id)
     return incidentes
 
