@@ -7,10 +7,16 @@ from app.models import Incidente
 from google.cloud import pubsub_v1
 
 # URL para la base de datos primaria
-SQLALCHEMY_DATABASE_URL_PRIMARY = f"mysql+mysqlconnector://{config.DB_USER}:{config.DB_PASSWORD}@{config.DB_HOST}:{config.DB_PORT}/{config.DB_NAME}"
+if config.DB_SOCKET_PATH:
+    SQLALCHEMY_DATABASE_URL_PRIMARY = f"mysql+mysqlconnector://{config.DB_USER}:{config.DB_PASSWORD}@/{config.DB_NAME}?unix_socket={config.DB_SOCKET_PATH}"
+else:
+    SQLALCHEMY_DATABASE_URL_PRIMARY = f"mysql+mysqlconnector://{config.DB_USER}:{config.DB_PASSWORD}@{config.DB_HOST}:{config.DB_PORT}/{config.DB_NAME}"
 
 # URL para la base de datos réplica
-SQLALCHEMY_DATABASE_URL_REPLICA = f"mysql+mysqlconnector://{config.DB_USER}:{config.DB_PASSWORD}@{config.DB_HOST_REPLICA}:{config.DB_PORT_REPLICA}/{config.DB_NAME_REPLICA}"
+if config.DB_SOCKET_PATH_REPLICA:
+    SQLALCHEMY_DATABASE_URL_PRIMARY = f"mysql+mysqlconnector://{config.DB_USER}:{config.DB_PASSWORD}@{config.DB_HOST}:{config.DB_PORT}/{config.DB_NAME}"
+else:
+    SQLALCHEMY_DATABASE_URL_REPLICA = f"mysql+mysqlconnector://{config.DB_USER}:{config.DB_PASSWORD}@{config.DB_HOST_REPLICA}:{config.DB_PORT_REPLICA}/{config.DB_NAME_REPLICA}"
 
 # Crear motores para las dos bases de datos
 engine_primary = create_engine(SQLALCHEMY_DATABASE_URL_PRIMARY)
