@@ -28,6 +28,20 @@ services:
     ports:
       - '${DOCKER_REDIS_PORT}:6379'
 
+  backend:
+    build:
+      context: ./incidentes
+      dockerfile: Dockerfile
+    container_name: incidents_backend
+    networks: [backend]
+    ports:
+      - '${DOCKER_BACKEND_PORT}:8080'
+    env_file:
+      - .env
+    volumes:
+      - ./incidentes:/app/incidentes
+      - ./.env:/app/.env
+
 networks:
   backend:
     name: backend

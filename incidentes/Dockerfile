@@ -1,28 +1,26 @@
-# Stage 1: Build the app
-FROM python:3.9-slim AS builder
+FROM debian:12-slim AS build
+RUN apt-get update && \
+    apt-get install --no-install-suggests --no-install-recommends --yes python3-venv gcc libpython3-dev && \
+    python3 -m venv /venv && \
+    /venv/bin/pip install --upgrade pip setuptools wheel
 
-WORKDIR /app
+FROM build AS build-venv
 
-# Copy only the necessary files for building dependencies
-COPY requirements.txt /app/
+COPY requirements.txt /requirements.txt
+COPY lib lib
 
-# Install dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
 
-# Stage 2: Production
-FROM python:3.9-slim AS production
+RUN /venv/bin/pip install --disable-pip-version-check -r /requirements.txt && \
+    /venv/bin/pip install debugpy 
 
-WORKDIR /app
+FROM gcr.io/distroless/python3-debian12 as production
+COPY --from=build-venv /venv /venv
 
-# Copy the application files
-COPY --from=builder /usr/local/lib/python3.9/site-packages /usr/local/lib/python3.9/site-packages
 COPY . /app
+WORKDIR /app
 
-# Expose the port
-EXPOSE 80
+EXPOSE 8080
 
-# Environment variables
-ENV MODULE_NAME=app.main
-
-# Start the application
-CMD ["uvicorn", "--host", "0.0.0.0", "--port", "3001", "main:app"]
+ENTRYPOINT ["/venv/bin/uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080", "--reload"]
