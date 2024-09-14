@@ -7,7 +7,6 @@ RUN apt-get update && \
 FROM build AS build-venv
 
 COPY requirements.txt /requirements.txt
-COPY lib lib
 
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
@@ -19,6 +18,7 @@ FROM gcr.io/distroless/python3-debian12 as production
 COPY --from=build-venv /venv /venv
 
 COPY . /app
+COPY . .
 WORKDIR /app
 
 EXPOSE 8080
