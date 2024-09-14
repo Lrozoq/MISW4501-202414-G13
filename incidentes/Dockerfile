@@ -1,20 +1,28 @@
-# Use an official Python runtime as a parent image
-FROM python:3.9-slim
+# Stage 1: Build the app
+FROM python:3.9-slim AS builder
 
-# Set the working directory in the container
 WORKDIR /app
 
-# Copy the current directory contents into the container at /app
-COPY . /app
+# Copy only the necessary files for building dependencies
+COPY requirements.txt /app/
 
-# Install any needed dependencies specified in requirements.txt
+# Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Make port 80 available to the world outside   container
+# Stage 2: Production
+FROM python:3.9-slim AS production
+
+WORKDIR /app
+
+# Copy the application files
+COPY --from=builder /usr/local/lib/python3.9/site-packages /usr/local/lib/python3.9/site-packages
+COPY . /app
+
+# Expose the port
 EXPOSE 80
 
-# Define environment variables
+# Environment variables
 ENV MODULE_NAME=app.main
 
-# Run app.py when the container launches
+# Start the application
 CMD ["uvicorn", "--host", "0.0.0.0", "--port", "3001", "main:app"]
