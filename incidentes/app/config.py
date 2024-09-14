@@ -14,3 +14,7 @@ DB_HOST_REPLICA = os.getenv("DB_HOST_REPLICA","localhost")
 DB_NAME_REPLICA = os.getenv("DB_NAME_REPLICA","prueba")
 DB_PORT_REPLICA = os.getenv("DB_PORT_REPLICA","5432")
 
+REDIS_HOST = os.getenv("REDIS_HOST","localhost")
+REDIS_PORT = os.getenv('DOCKER_REDIS_PORT', 6379)
+REDIS_SERVICE_NAME = os.getenv('DOCKER_REDIS_SERVICE_NAME')
+
