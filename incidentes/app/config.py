@@ -21,7 +21,7 @@ ENV = os.getenv("ENV")
 if ENV:
     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "service-account.json"
 
-REDIS_HOST = os.getenv("REDIS_HOST","localhost")
+REDIS_HOST = os.getenv("DOCKER_REDIS_SERVICE_NAME","localhost")
 REDIS_PORT = os.getenv('DOCKER_REDIS_PORT', 6379)
 REDIS_SERVICE_NAME = os.getenv('DOCKER_REDIS_SERVICE_NAME')
 

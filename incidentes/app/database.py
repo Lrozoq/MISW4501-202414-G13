@@ -16,7 +16,7 @@ else:
 if config.DB_SOCKET_PATH_REPLICA:
     SQLALCHEMY_DATABASE_URL_REPLICA = f"mysql+mysqlconnector://{config.DB_USER}:{config.DB_PASSWORD}@/{config.DB_NAME}?unix_socket={config.DB_SOCKET_PATH_REPLICA}"
 else:
-    SQLALCHEMY_DATABASE_URL_REPLICA = f"mysql+mysqlconnector://{config.DB_USER}:{config.DB_PASSWORD}@{config.DB_HOST_REPLICA}:{config.DB_PORT_REPLICA}/{config.DB_NAME_REPLICA}"
+    SQLALCHEMY_DATABASE_URL_REPLICA = f"mysql+mysqlconnector://{config.DB_USER}:{config.DB_PASSWORD}@{config.DB_HOST_REPLICA}:{config.DB_PORT}/{config.DB_NAME_REPLICA}"
 
 # Crear motores para las dos bases de datos
 engine_primary = create_engine(SQLALCHEMY_DATABASE_URL_PRIMARY)
