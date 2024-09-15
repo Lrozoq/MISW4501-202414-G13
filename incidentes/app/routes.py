@@ -47,6 +47,12 @@ async def obtener_todos_cache():
 
 
 @router.get("/incidentes/{user_id}")
-async def obtener_incidentes(user_id: int):
+async def obtener_incidentes_por_usuario(user_id: int):
     incidentes = obtener_incidentes_user(user_id)
     return incidentes
+
+@router.get("/incidentes_Cache/{user_id}")
+async def obtener_incidentes_por_usuario_cache(user_id: int):
+    incidentes = obtener_incidentes_user(user_id)
+    return incidentes
+

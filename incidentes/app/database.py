@@ -43,6 +43,7 @@ def create_session(primary: bool = True):
 
 def create_incidente(incidente: Incidente):
     """Crea un incidente en la base de datos primaria."""
+    incidente.id = None
     session = create_session(primary=True)  # Siempre en la primaria
     session.add(incidente)
     session.commit()
@@ -93,14 +94,6 @@ def obtener_incidentes():
     return incidentes
 
 
-def obtener_incidentes_user(user_id: int):
-    """Obtiene todos los incidentes de un usuario desde la réplica."""
-    session = create_session(primary=False)# Para Consultas desde la réplica cambiarle el valor a false
-    incidentes = session.query(Incidente).filter(Incidente.user_id == user_id).all()
-    session.close()
-    return incidentes
-
-
 def obtener_incidentes_cache() -> List[Incidente]:
     """Obtiene todos los incidentes desde Redis o la base de datos réplica."""
     
@@ -128,4 +121,53 @@ def obtener_incidentes_cache() -> List[Incidente]:
         redis_client.set(f"incidente:{incidente.id}", incidente_json)
 
     return incidentes
+
+
+
+
+def obtener_incidentes_user(user_id: int):
+    """Obtiene todos los incidentes de un usuario desde la réplica."""
+    session = create_session(primary=False)# Para Consultas desde la réplica cambiarle el valor a false
+    incidentes = session.query(Incidente).filter(Incidente.user_id == user_id).all()
+    session.close()
+    return incidentes
+
+
+
+def obtener_incidentes_user_cache(user_id: int):
+ 
+    # Buscar todas las claves que correspondan a incidentes en Redis
+    keys = redis_client.keys("incidente:*")
     
+    incidentes = []
+    
+    # Recorrer las claves y filtrar por user_id
+    for key in keys:
+        incidente_json = redis_client.get(key)
+        if incidente_json:
+            incidente_data = json.loads(incidente_json)
+            
+            # Si el incidente pertenece al user_id especificado, lo añadimos a la lista
+            if incidente_data["user_id"] == user_id:
+                incidentes.append(incidente_data)
+    
+    # Si encontramos incidentes en caché, retornarlos
+    if incidentes:
+        print("Incidentes obtenidos desde la caché.")
+        return incidentes
+    
+    # Si no hay incidentes en caché, buscar en la base de datos
+    print("Incidentes no encontrados en caché, consultando la base de datos...")
+    incidentes_db = obtener_incidentes_user(user_id)
+    
+    # Si encontramos incidentes en la base de datos, guardarlos en Redis y devolverlos
+    if incidentes_db:
+        for incidente in incidentes_db:
+            incidente_json = json.dumps(incidente.dict())
+            redis_client.set(f"incidente:{incidente.id}", incidente_json)
+        
+        print("Incidentes guardados en caché.")
+        return incidentes_db
+
+    # Si no se encuentran incidentes ni en caché ni en la base de datos
+    return []
