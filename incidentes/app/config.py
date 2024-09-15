@@ -2,11 +2,11 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
-DB_USER = os.getenv("DB_USER","prueba")
-DB_PASSWORD = os.getenv("DB_PASSWORD","prueba")
-DB_HOST = os.getenv("DB_HOST","localhost")
-DB_NAME = os.getenv("DB_NAME","prueba")
-DB_PORT = os.getenv("DB_PORT","5432")
+DB_USER = os.getenv("DB_USER_PRIMARY","prueba")
+DB_PASSWORD = os.getenv("DB_PASSWORD_PRIMARY","prueba")
+DB_HOST = os.getenv("DB_HOST_PRIMARY","localhost")
+DB_NAME = os.getenv("DB_NAME_PRIMARY","prueba")
+DB_PORT = os.getenv("DB_PORT_PRIMARY","5432")
 
 DB_USER_REPLICA = os.getenv("DB_USER_REPLICA","prueba")
 DB_PASSWORD_REPLICA = os.getenv("DB_PASSWORD_REPLICA","prueba")
@@ -16,7 +16,7 @@ DB_PORT_REPLICA = os.getenv("DB_PORT_REPLICA","5432")
 
 PROJECT_ID = os.getenv("GCP_PROJECT_ID", "abcall-435301")
 TOPIC_ID = os.getenv("GCP_TOPIC_ID", "incidents-db-sync")
-# os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "service-account.json"
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.getenv("JSON_KEY_FILE", "")
 
 REDIS_HOST = os.getenv("REDIS_HOST","localhost")
 REDIS_PORT = os.getenv('DOCKER_REDIS_PORT', 6379)
