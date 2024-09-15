@@ -2,26 +2,24 @@ services:
   incidents-primary:
     image: gcr.io/cloudsql-docker/gce-proxy:1.12
     platform: linux/amd64
-    container_name: incidents-primary
+    container_name: incidents_primary
     command: /cloud_sql_proxy -instances=${INSTANCE_INCIDENTS} -credential_file=/config
     ports:
       - '0.0.0.0:${PORT_INCIDENTS}:3306'
     volumes:
       - ./${JSON_KEY_FILE}:/config
-    networks:
-      - backend
- 
+    networks: [backend]
+
   incidents-replica:
     image: gcr.io/cloudsql-docker/gce-proxy:1.12
     platform: linux/amd64
-    container_name: incidents-replica
+    container_name: incidents_replica
     command: /cloud_sql_proxy -instances=${INSTANCE_INCIDENTS_REPLICA} -credential_file=/config
     ports:
       - '0.0.0.0:${PORT_INCIDENTS_REPLICA}:3306'
     volumes:
       - ./${JSON_KEY_FILE}:/config
-    networks:
-      - backend
+    networks: [backend]
  
   redis:
     image: redis:alpine
