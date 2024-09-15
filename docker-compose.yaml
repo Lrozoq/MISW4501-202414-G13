@@ -43,6 +43,7 @@ services:
     volumes:
       - ./incidentes:/app/incidentes
       - ./.env:/app/.env
+      - ./${JSON_KEY_FILE}:/app/${JSON_KEY_FILE}
  
 networks:
   backend:
