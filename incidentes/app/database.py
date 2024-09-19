@@ -1,7 +1,7 @@
 import json
 from typing import List
 from redis import Redis
-from sqlmodel import Session, create_engine, SQLModel
+from sqlmodel import Session, create_engine, SQLModel, text
 from app import config
 from app.models import Incidente
 from google.cloud import pubsub_v1
@@ -86,7 +86,14 @@ def create_incidente_cache(incidente: Incidente):
     return incidente
 
 
-def obtener_incidentes():
+def obtener_incidentes_primaria():
+    """Obtiene todos los incidentes desde la base de datos réplica."""
+    session = create_session(primary=True)  # Para Consultas desde la réplica cambiarle el valor a false
+    incidentes = session.query(Incidente).all()
+    session.close()
+    return incidentes
+
+def obtener_incidentes_replica():
     """Obtiene todos los incidentes desde la base de datos réplica."""
     session = create_session(primary=False)  # Para Consultas desde la réplica cambiarle el valor a false
     incidentes = session.query(Incidente).all()
@@ -98,7 +105,7 @@ def obtener_incidentes_cache() -> List[Incidente]:
     """Obtiene todos los incidentes desde Redis o la base de datos réplica."""
     
     # Intentar obtener los incidentes del caché
-    keys = redis_client.keys("incidente:*")
+    keys = redis_client.keys("incidentes:*")
     
     if keys:
         print("Incidentes obtenidos desde el caché.")
@@ -118,7 +125,7 @@ def obtener_incidentes_cache() -> List[Incidente]:
     # Guardar cada incidente individualmente en el caché
     for incidente in incidentes:
         incidente_json = json.dumps(incidente.dict())
-        redis_client.set(f"incidente:{incidente.id}", incidente_json)
+        redis_client.set(f"incidentes:{incidente.id}", incidente_json)
 
     return incidentes
 
@@ -137,7 +144,7 @@ def obtener_incidentes_user(user_id: int):
 def obtener_incidentes_user_cache(user_id: int):
  
     # Buscar todas las claves que correspondan a incidentes en Redis
-    keys = redis_client.keys("incidente:*")
+    keys = redis_client.keys("incidentes:*")
     
     incidentes = []
     
@@ -164,10 +171,29 @@ def obtener_incidentes_user_cache(user_id: int):
     if incidentes_db:
         for incidente in incidentes_db:
             incidente_json = json.dumps(incidente.dict())
-            redis_client.set(f"incidente:{incidente.id}", incidente_json)
+            redis_client.set(f"incidentes:{incidente.id}", incidente_json)
         
         print("Incidentes guardados en caché.")
         return incidentes_db
 
     # Si no se encuentran incidentes ni en caché ni en la base de datos
     return []
+
+
+def borrar_primaria():
+    session = create_session(primary=True)
+    sql_query = text("truncate table incidente")
+    session.execute(sql_query)
+    session.commit()
+    session.close()
+    
+
+def borrar_replica():
+    session = create_session(primary=False)
+    sql_query = text("truncate table incidente")
+    session.execute(sql_query)
+    session.commit()
+    session.close()
+    
+def borrar_cache():
+    redis_client.flushdb()

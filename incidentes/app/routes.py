@@ -1,7 +1,7 @@
 import json
 from fastapi import APIRouter, HTTPException
 from app.models import Incidente
-from app.database import create_incidente,obtener_incidentes, obtener_incidentes_cache, create_incidente_cache, obtener_incidentes_user, publisher, topic_path
+from app.database import borrar_cache, borrar_primaria, borrar_replica, create_incidente, obtener_incidentes_cache, create_incidente_cache, obtener_incidentes_primaria, obtener_incidentes_replica, obtener_incidentes_user, publisher, topic_path
 
 
 router = APIRouter()
@@ -34,16 +34,22 @@ async def crear_incidente_cache(event_data: Incidente ):
     return incidente
 
 
-@router.get("/incidentes")
+
+@router.get("/incidentes_primaria")
 async def obtener_todos():
-    incidentes = obtener_incidentes()
+    incidentes = obtener_incidentes_primaria()
     return incidentes
 
+@router.get("/incidentes_replica")
+async def obtener_todos():
+    incidentes = obtener_incidentes_replica()
+    return incidentes
 
 @router.get("/incidentes_cache")
 async def obtener_todos_cache():
     incidentes =  obtener_incidentes_cache()
     return incidentes
+
 
 
 @router.get("/incidentes/{user_id}")
@@ -55,4 +61,22 @@ async def obtener_incidentes_por_usuario(user_id: int):
 async def obtener_incidentes_por_usuario_cache(user_id: int):
     incidentes = obtener_incidentes_user(user_id)
     return incidentes
+
+
+@router.get("/borrar_primaria")
+async def get_borrar_primaria():
+    borrar_primaria()
+    return "Se eliminaron los registros de la base de datos primaria"
+
+@router.get("/borrar_replica")
+async def get_borrar_replica():
+    borrar_replica()
+    return "Se eliminaron los registros de la base de datos replica"
+    
+    
+@router.get("/borrar_cache")
+async def get_borrar_redis():
+    borrar_cache()
+    return "Se eliminaron los registros de la memoria cache"
+
 
